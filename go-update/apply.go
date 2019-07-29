@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"updator/go-update/internal/osext"
 )
 
@@ -85,16 +86,11 @@ func Apply(update io.Reader, opts Options) error {
 	} else {
 		// no patch to apply, go on through
 		if newBytes, err = ioutil.ReadAll(update); err != nil {
+			log.Println(err.Error())
 			return err
 		}
 	}
-	//Close it if the update is a file opened, or it will be a failure to rename it
-	if _, ok := update.(*os.File);ok {
-		err = update.(*os.File).Close()
-		if err != nil {
-			return err
-		}
-	}
+
 	// verify checksum if requested
 	if opts.Checksum != nil {
 		if err = opts.verifyChecksum(newBytes); err != nil {
@@ -116,10 +112,12 @@ func Apply(update io.Reader, opts Options) error {
 	newPath := filepath.Join(updateDir, fmt.Sprintf(".%s.new", filename))
 	fp, err := openFile(newPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, opts.TargetMode)
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 	_, err = io.Copy(fp, bytes.NewReader(newBytes))
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 
@@ -127,6 +125,7 @@ func Apply(update io.Reader, opts Options) error {
 	// because the file will still be "in use"
 	err = fp.Close()
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 
@@ -148,24 +147,28 @@ func Apply(update io.Reader, opts Options) error {
 		if os.IsExist(err) && !fileInfo.IsDir() {
 			err = os.Remove(oldPath)
 			if err != nil {
+				log.Println(err.Error())
 				return err
 			}
 		}
 	}
 	// move the existing file to a new file in the specific directory
 	fileInfo, err = os.Stat(opts.TargetPath)
-	if err != nil {
+	if err != nil && os.IsNotExist(err) {
 		//if the file does not exist, just add it to the path
 		fTemp, err := os.Create(opts.TargetPath)
 		if err != nil {
+			log.Println(err.Error())
 			return err
 		}
 		_, err = io.Copy(fTemp, update)
 		if err != nil {
+			log.Println(err.Error())
 			return err
 		}
 		err = fTemp.Close()
 		if err != nil {
+			log.Println(err.Error())
 			return err
 		}
 	} else {
@@ -176,7 +179,19 @@ func Apply(update io.Reader, opts Options) error {
 			return err
 		}
 	}
-
+	//Close it if the update is a file opened, or it will be a failure to rename it
+	if _, ok := update.(*os.File);ok {
+		err = update.(*os.File).Close()
+		if err != nil {
+			if strings.Contains(err.Error(), os.ErrClosed.Error()) {
+				log.Println("no need to close file again.")
+				return nil
+			}else {
+				log.Println(err.Error())
+				return err
+			}
+		}
+	}
 	// move the new file in
 	err = os.Rename(newPath, opts.TargetPath)
 
@@ -204,6 +219,7 @@ func Apply(update io.Reader, opts Options) error {
 
 		// windows has trouble with removing old binaries, so hide it instead
 		if errRemove != nil {
+			log.Println(err.Error())
 			_ = hideFile(oldPath)
 		}
 	}

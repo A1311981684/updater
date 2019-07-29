@@ -97,11 +97,11 @@ func rangeFiles(path string) error {
 
 	fileInfos, err := ioutil.ReadDir(path)
 	if err != nil {
+		log.Println(err.Error(), fileInfos[0].Name(), path)
 		return err
 	}
 
 	for _, v := range fileInfos {
-
 		//Make sure path ends with separator
 		if strings.LastIndex(path, Separator) != len(path)-1 {
 			path += string(filepath.Separator)
@@ -111,11 +111,13 @@ func rangeFiles(path string) error {
 			//Create backup directories according to the update package
 			err = os.MkdirAll(strings.Replace(path+v.Name(), "UPDATES"+Separator+"FILES", "BACKUPS", 1), os.ModePerm)
 			if err != nil {
+				log.Println(err.Error())
 				return err
 			}
 			//Continue to find next file to be updated
 			err = rangeFiles(path + v.Name())
 			if err != nil {
+				log.Println(err.Error())
 				return err
 			}
 		} else {
@@ -123,6 +125,7 @@ func rangeFiles(path string) error {
 			//Open the new file
 			f, err := os.Open(path + v.Name())
 			if err != nil {
+				log.Println(err.Error(), path, v.Name())
 				return err
 			}
 			tgp := strings.Replace(path, Separator+updateConfig.CurrentProjectName+Separator+"UPDATES"+Separator+"FILES", "", 1) + v.Name()
@@ -141,12 +144,15 @@ func rangeFiles(path string) error {
 			//Make sure updateDir does exist
 			_, err = os.Stat(updateDir)
 			if err != nil {
+				log.Println(err.Error())
 				if os.IsNotExist(err) {
 					err = os.MkdirAll(updateDir, os.ModePerm)
 					if err != nil {
+						log.Println(err.Error())
 						return err
 					}
 				} else {
+					log.Println(err.Error())
 					return err
 				}
 			}
@@ -154,23 +160,32 @@ func rangeFiles(path string) error {
 			backupDir := filepath.Dir(osp)
 			_, err = os.Stat(backupDir)
 			if err != nil {
+				log.Println(err.Error())
 				if os.IsNotExist(err) {
 					err = os.MkdirAll(backupDir, os.ModePerm)
 					if err != nil {
+						log.Println(err.Error())
 						return err
 					}
 				} else {
+					log.Println(err.Error())
 					return err
 				}
 			}
 
 			err = update.Apply(f, options)
 			if err != nil {
+				log.Println(err.Error())
 				return err
 			}
+
 			err = f.Close()
-			if err != nil {
+			if err != nil && strings.Contains(err.Error(), os.ErrClosed.Error()) {
+				//log.Println("file closed.")
+				continue
+			}else if err != nil {
 				log.Println(err.Error())
+				return err
 			}
 		}
 	}
