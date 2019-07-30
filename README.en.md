@@ -8,8 +8,8 @@ Software architecture description
 
 #### Installation
 
-1. xxxx
-2. xxxx
+1. shift
+2. Instructions
 3. xxxx
 
 #### Instructions
