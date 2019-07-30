@@ -1,6 +1,7 @@
 package update
 
 import (
+	"log"
 	"os"
 	"os/exec"
 	"time"
@@ -11,18 +12,20 @@ func Restart() error {
 	var err error
 	cmd := exec.Command(updateConfig.RestartManagerPath, os.Args[0])
 
-	cmdIn, _ := cmd.StdinPipe()
-
+	cmdIn, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
 	err = cmd.Start()
 	if err != nil {
 		return err
 	}
 	//Write message to pipe
-	_, err = cmdIn.Write([]byte("r"))
+	_, err = cmdIn.Write([]byte("r\n"))
 	if err != nil {
 		return err
 	}
-
+	log.Println("r written")
 	err = cmdIn.Close()
 	if err != nil {
 		return err
