@@ -21,7 +21,7 @@ func Restart() error {
 		return err
 	}
 	//Write message to pipe
-	_, err = cmdIn.Write([]byte("r\n"))
+	_, err = cmdIn.Write([]byte("r"))
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func Restart() error {
 
 //TODO Do something to save data before exit?
 func Exit() {
-	time.AfterFunc(5 * time.Second, func() {
+	time.AfterFunc(1 * time.Second, func() {
 		os.Exit(0)
 	})
 }
