@@ -8,7 +8,7 @@ import "log"
 //In case windows system forbid us to change running exe
 func PerformRollback(manager , backupPath, appName string) error {
 	var err error
-	cmd := exec.Command(manager, backupPath, appName)
+	cmd := exec.Command(manager, backupPath, os.Args[0], appName)
 
 	cmdIn, _ := cmd.StdinPipe()
 

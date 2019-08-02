@@ -1,9 +1,12 @@
 package update
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -23,8 +26,18 @@ func loadScripts() error {
 	}
 	var scriptList []string
 	for _, v := range infos {
+
 		if !v.IsDir() {
-			if strings.Contains(v.Name(), ".sh") {
+			var postFix string
+
+			switch runtime.GOOS {
+			case "windows":	postFix = ".bat"
+			case "linux", "darwin": postFix = ".sh"
+			default:
+				return fmt.Errorf("unsupported OS")
+			}
+
+			if strings.Contains(v.Name(), postFix) {
 				scriptList = append(scriptList, newFilePath + v.Name())
 			}
 		}
@@ -91,7 +104,15 @@ func loadScripts() error {
 
 func executeScript(script string)error{
 	log.Println("Executing:", script)
-	//cmd := exec.Command("/bin/bash", "-c", script )
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("C:\\Windows\\System32\\cmd.exe", script)
+		return cmd.Start()
+	case "linux", "darwin":
+		log.Println("script executed")
+	default :
+		panic("unsupported os")
+	}
 	return nil
 }
 

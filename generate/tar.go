@@ -481,11 +481,11 @@ func convertPathByOS(paths []string) ([]string, error) {
 }
 
 func CleanTemp() error {
-	err := os.RemoveAll(tempPath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-	}
+	//err := os.RemoveAll(tempPath)
+	//if err != nil {
+	//	if !os.IsNotExist(err) {
+	//		return err
+	//	}
+	//}
 	return nil
 }
