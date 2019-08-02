@@ -16,7 +16,7 @@ func Restart() error {
 	if err != nil {
 		return err
 	}
-	err = cmd.Start()
+	err = cmd.Run()
 	if err != nil {
 		return err
 	}

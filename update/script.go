@@ -1,9 +1,11 @@
 package update
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -25,10 +27,11 @@ func loadScripts() error {
 		return nil
 	}
 	var scriptList []string
+	var postFix string
 	for _, v := range infos {
 
 		if !v.IsDir() {
-			var postFix string
+
 
 			switch runtime.GOOS {
 			case "windows":	postFix = ".bat"
@@ -59,7 +62,7 @@ func loadScripts() error {
 	var preSorted = make([]string, length)
 	for _, v := range pre {
 		scriptName := filepath.Base(v)
-		split := strings.Split(strings.Replace(scriptName, ".sh", "", 1), "_")
+		split := strings.Split(strings.Replace(scriptName, postFix, "", 1), "_")
 		if len(split) != 2 {
 			log.Println("Invalid script name:", scriptName, "haha",  split)
 			length--
@@ -80,7 +83,7 @@ func loadScripts() error {
 	length = len(post)
 	for _, v := range post {
 		scriptName := filepath.Base(v)
-		split := strings.Split(strings.Replace(scriptName, ".sh", "", 1), "_")
+		split := strings.Split(strings.Replace(scriptName, postFix, "", 1), "_")
 		if len(split) != 2 {
 			log.Println("Invalid script name:", scriptName)
 			length--
@@ -106,8 +109,13 @@ func executeScript(script string)error{
 	log.Println("Executing:", script)
 	switch runtime.GOOS {
 	case "windows":
-		cmd := exec.Command("C:\\Windows\\System32\\cmd.exe", script)
-		return cmd.Start()
+		cmd := exec.Command("cmd")
+		var exePath = os.Args[0] // F:\\VirtualBox\\Ubuntu\\GoPath\\src\\updatorTest\\updateTest.exe
+		var disk = strings.Split(exePath, ":")[0] // F
+		var scriptPath = filepath.Dir(exePath) + string(filepath.Separator) + "UPDATES" + string(filepath.Separator) +
+			"FILES" + string(filepath.Separator)
+		cmd.Stdin = bytes.NewBuffer([]byte(disk+":\n" + "cd "+scriptPath+"\n" + script+"\n"))
+		return cmd.Run()
 	case "linux", "darwin":
 		log.Println("script executed")
 	default :
