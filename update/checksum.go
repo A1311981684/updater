@@ -28,7 +28,6 @@ func checkMD5s() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Checksums are all verified and all matched. Compared count:", len(_checksumMap.MD5s))
 	return nil
 }
 
@@ -50,8 +49,8 @@ func CheckChecksum() error {
 	}
 	if len(dirs) == 0 {
 		return errors.New("no extracted update directory found" + newFilePath)
-	} else if len(dirs) != 1 {
-		return errors.New("too many directories found in the extracted content")
+	} else if len(dirs) > 1 {
+		return fmt.Errorf("too many directories found in the extracted content: %d, %v", len(dirs), dirs)
 	}
 	//Check if update package project name match current project name
 	if dirs[0] != updateConfig.CurrentProjectName {

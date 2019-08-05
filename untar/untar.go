@@ -3,7 +3,6 @@ package untar
 import (
 	"archive/tar"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -11,7 +10,6 @@ import (
 // Un tar takes a destination path and a reader; a tar reader loops over the tar file
 // creating the file structure at 'dst' along the way, and writing any files
 func Untar(src io.Reader, dst string) error {
-	log.Println("Un-tar to dst:", dst)
 
 	tr := tar.NewReader(src)
 

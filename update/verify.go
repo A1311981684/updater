@@ -2,7 +2,6 @@ package update
 
 import (
 	"encoding/gob"
-	"log"
 	"os"
 )
 
@@ -32,6 +31,5 @@ func loadVerification() error {
 
 	_checksumMap = verification.MD5
 	_versionController = verification.Versions
-	log.Println("loaded checksum map:", _checksumMap)
 	return nil
 }

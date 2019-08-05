@@ -4,10 +4,27 @@ import (
 	"io"
 	"updator/untar"
 	"log"
+	"os"
 )
 
 func Start(inputUpdate io.Reader, currentVersion string) error {
-	err := untar.Untar(inputUpdate, newFilePath)
+	//Before untar, remove old UPDATES file
+	var err error
+	_, err = os.Stat(newFilePath)
+	if err != nil {
+		if os.IsExist(err) {
+			err = os.RemoveAll(newFilePath)
+			if err != nil {
+				return err
+			}
+			err = os.MkdirAll(newFilePath, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = untar.Untar(inputUpdate, newFilePath)
 	if err != nil {
 		log.Println(err.Error())
 		return err

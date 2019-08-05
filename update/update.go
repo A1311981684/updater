@@ -49,7 +49,8 @@ func init() {
 			}
 		}
 	}
-
+	newFilePath, _ = filepath.Abs(newFilePath)
+	newFilePath += string(filepath.Separator)
 }
 
 func SetUpdateConfig(config *UpdaterConfig) {
@@ -106,6 +107,7 @@ func rangeFiles(path string) error {
 		if strings.LastIndex(path, Separator) != len(path)-1 {
 			path += string(filepath.Separator)
 		}
+
 		if v.IsDir() {
 
 			//Create backup directories according to the update package
@@ -124,11 +126,16 @@ func rangeFiles(path string) error {
 
 			//Open the new file
 			f, err := os.Open(path + v.Name())
+
 			if err != nil {
 				log.Println(err.Error(), path, v.Name())
 				return err
 			}
-			tgp := strings.Replace(path, Separator+updateConfig.CurrentProjectName+Separator+"UPDATES"+Separator+"FILES", "", 1) + v.Name()
+
+			tgp, err := filepath.Abs(strings.Replace(path, Separator+updateConfig.CurrentProjectName+Separator+"UPDATES"+Separator+"FILES", "", 1) + v.Name())
+			if err != nil {
+				return err
+			}
 			osp := strings.Replace(path, "UPDATES"+Separator+"FILES", "BACKUPS", 1) + v.Name()
 			options := update.Options{
 				//TargetPath refers to the file needed to be replaced by a new file
@@ -137,7 +144,6 @@ func rangeFiles(path string) error {
 				//OldSavePath refers to the backup file path
 				OldSavePath: osp,
 			}
-
 			// get the directory of the target file exists in
 			updateDir := filepath.Dir(tgp)
 			//filename := filepath.Base(tgp)

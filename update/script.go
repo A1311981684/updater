@@ -117,7 +117,40 @@ func executeScript(script string)error{
 		cmd.Stdin = bytes.NewBuffer([]byte(disk+":\n" + "cd "+scriptPath+"\n" + script+"\n"))
 		return cmd.Run()
 	case "linux", "darwin":
-		log.Println("script executed")
+		//处理尖尖M
+		fileData, err := ioutil.ReadFile(script)
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(string(fileData), "\r") {
+			tmpStr := strings.Replace(string(fileData), "\r", "", -1)
+
+			f, err := os.Create(script)
+			if err != nil {
+				return err
+			}
+			err = f.Close()
+			if err != nil {
+				return err
+			}
+
+			err = ioutil.WriteFile(script, []byte(tmpStr), os.ModePerm)
+			if err != nil {
+				return err
+			}
+		}
+
+		cmd := exec.Command("sh")
+		var exePath = os.Args[0] // F:\\VirtualBox\\Ubuntu\\GoPath\\src\\updatorTest\\updateTest.exe
+		abs, err := filepath.Abs(filepath.Dir(exePath))
+		if err != nil {
+			return err
+		}
+		var scriptPath = abs + string(filepath.Separator) + "UPDATES" + string(filepath.Separator) +
+			"FILES" + string(filepath.Separator)
+		cmd.Stdin = bytes.NewBuffer([]byte("cd "+scriptPath+"\n./" +filepath.Base(script)+"\n"))
+		return cmd.Run()
 	default :
 		panic("unsupported os")
 	}

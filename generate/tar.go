@@ -152,6 +152,7 @@ func CreateUpdate(content UpdateContent, outputWriter io.Writer) error {
 		}
 	}
 	err = tarFilesDirs(src, outputWriter)
+	log.Println(src)
 	if err != nil {
 		return err
 	}
